@@ -1,12 +1,23 @@
 import requests
-import json
 import time
+import threading
+import os
+from flask import Flask
 
+# ================= تنظیمات =================
 BOT_TOKEN = "CIIGEF0QIJHVUSDQGHPOIFIMVNHCLZIQWOUQNYKYQUZQRCSQASUOKWUTOMRMKRMR"
 API_URL = "https://afrabar.ir/barname/api_save_barnameh.php" 
 SECRET_TOKEN = "MY_SUPER_SECRET_TOKEN_123"
 RUBIKA_API = f"https://botapi.rubika.ir/v3/bot{BOT_TOKEN}"
 
+# ================= وب‌سرور برای Koyeb =================
+app = Flask(__name__)
+
+@app.route('/')
+def health():
+    return "Bot is running!"
+
+# ================= منطق ربات =================
 user_states = {}
 user_data = {}
 
@@ -35,7 +46,7 @@ def parse_plate(plate_str):
     if len(parts) >= 5: return parts[0], parts[1], parts[2], parts[4]
     return "", "", "", ""
 
-def main_loop():
+def bot_loop():
     last_update_id = 0
     print("Bot Started...")
     while True:
@@ -94,5 +105,11 @@ def main_loop():
         except Exception as e: print(f"Loop Error: {e}")
         time.sleep(2)
 
+# ================= اجرای همزمان =================
 if __name__ == "__main__":
-    main_loop()
+    bot_thread = threading.Thread(target=bot_loop)
+    bot_thread.daemon = True
+    bot_thread.start()
+    
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host="0.0.0.0", port=port)
